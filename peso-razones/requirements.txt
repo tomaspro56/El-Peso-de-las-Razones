@@ -1,0 +1,6 @@
+flask>=3.0.0
+flask-socketio>=5.3.6
+qrcode[pil]>=7.4.2
+eventlet>=0.35.2
+pillow>=10.0.0
+python-dotenv>=1.0.0

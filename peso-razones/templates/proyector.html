@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El peso de las razones — Proyector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/proyector.css') }}" />
+</head>
+<body>
+
+  <!-- ═══ LOBBY ═══ -->
+  <section id="fase-lobby" class="fase activa" aria-label="Sala de espera">
+    <header class="lobby-header">
+      <h1 class="lobby-titulo">El peso de las razones</h1>
+      <p class="lobby-subtitulo">Matemáticas para la Informática · Dilemas filosóficos en tiempo real</p>
+    </header>
+    <main class="lobby-main">
+      <div class="qr-marco">
+        <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR para unirse" class="qr-imagen" width="300" height="300" />
+      </div>
+      <p class="lobby-url">{{ url_jugador }}</p>
+      <p class="lobby-instruccion">Escanea con tu cámara para unirte</p>
+    </main>
+    <footer class="lobby-footer">
+      <p id="modo-prueba-badge" class="modo-prueba-badge" hidden>MODO PRUEBA ACTIVO</p>
+      <p id="lobby-contador" class="lobby-contador">0 jugadores conectados</p>
+      <p id="aviso-audio" class="aviso-audio">Haz clic en cualquier parte para activar el audio</p>
+      <button id="btn-iniciar" class="btn-iniciar" hidden>INICIAR EXPOSICIÓN</button>
+    </footer>
+  </section>
+
+  <!-- ═══ PREDICCIÓN D5 ═══ -->
+  <section id="fase-prediccion" class="fase" aria-label="Revelación de predicción">
+    <div class="prediccion-contenido">
+      <p id="pred-linea1" class="pred-linea pred-normal"></p>
+      <p id="pred-linea2" class="pred-linea pred-cursiva"></p>
+      <p id="pred-linea3" class="pred-linea pred-grande"></p>
+      <p id="pred-linea4" class="pred-linea pred-explicacion"></p>
+    </div>
+  </section>
+
+  <!-- ═══ DILEMA BINARIO (1–5) ═══ -->
+  <section id="fase-dilema" class="fase" aria-label="Dilema activo">
+    <div class="topbar">
+      <h2 id="dilema-titulo-bar" class="topbar-titulo"></h2>
+      <div id="timer-wrap" class="timer-wrap" aria-live="polite">
+        <span id="timer-num" class="timer-num">—</span>
+        <span class="timer-s">s</span>
+      </div>
+    </div>
+    <main class="dilema-centro">
+      <div id="dilema-bg" class="dilema-bg" hidden>
+        <img id="dilema-bg-img" class="dilema-bg-img" src="" alt="" />
+      </div>
+      <p id="enunciado-texto" class="enunciado-texto"></p>
+    </main>
+    <div class="bottombar">
+      <div class="opciones-wrap">
+        <div class="opcion-caja" id="caja-a">
+          <div class="opcion-cabecera">
+            <span class="opcion-letra">A</span>
+            <span class="opcion-texto" id="texto-a"></span>
+            <span class="opcion-votos-num" id="votos-a">0</span>
+          </div>
+          <div class="barra-wrap"><div class="barra-fill" id="barra-a"></div></div>
+        </div>
+        <div class="opcion-caja" id="caja-b">
+          <div class="opcion-cabecera">
+            <span class="opcion-letra">B</span>
+            <span class="opcion-texto" id="texto-b"></span>
+            <span class="opcion-votos-num" id="votos-b">0</span>
+          </div>
+          <div class="barra-wrap"><div class="barra-fill" id="barra-b"></div></div>
+        </div>
+      </div>
+      <p id="votos-contador" class="votos-contador" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ═══ DILEMA LIBRE (6) ═══ -->
+  <section id="fase-libre" class="fase" aria-label="Dilema de respuesta libre">
+    <div class="topbar">
+      <h2 id="libre-titulo-bar" class="topbar-titulo"></h2>
+      <div id="libre-timer-wrap" class="timer-wrap" aria-live="polite">
+        <span id="libre-timer-num" class="timer-num">—</span>
+        <span class="timer-s">s</span>
+      </div>
+    </div>
+    <main class="libre-main">
+      <p id="libre-enunciado" class="enunciado-texto libre-enunciado-reducido"></p>
+      <p id="libre-espera-msg" class="libre-espera-msg">Esperando respuestas…</p>
+      <div id="respuestas-contenedor" class="respuestas-contenedor" aria-live="polite"></div>
+    </main>
+    <footer class="libre-footer">
+      <p id="libre-contador" class="votos-contador"></p>
+    </footer>
+  </section>
+
+  <!-- ═══ RESULTADOS ═══ -->
+  <section id="fase-resultados" class="fase" aria-label="Resultados del dilema">
+    <div id="res-bg" class="res-bg" hidden>
+      <img id="res-bg-img" class="res-bg-img" src="" alt="" />
+    </div>
+    <header class="resultados-header">
+      <h2 id="resultados-titulo" class="resultados-titulo"></h2>
+      <p id="res-enunciado" class="res-enunciado"></p>
+    </header>
+    <main class="resultados-main">
+      <div id="res-libre-wrap" style="display:none">
+        <div id="res-libre-respuestas" class="res-libre-respuestas"></div>
+      </div>
+      <div id="res-binario-wrap" class="resultados-barras">
+        <div class="resultado-fila">
+          <span class="resultado-letra">A</span>
+          <span class="resultado-opcion-texto" id="res-texto-a"></span>
+          <div class="resultado-barra-wrap"><div class="resultado-barra-fill" id="res-barra-a"></div></div>
+          <span class="resultado-pct" id="res-pct-a">0%</span>
+        </div>
+        <div class="resultado-fila">
+          <span class="resultado-letra">B</span>
+          <span class="resultado-opcion-texto" id="res-texto-b"></span>
+          <div class="resultado-barra-wrap"><div class="resultado-barra-fill" id="res-barra-b"></div></div>
+          <span class="resultado-pct" id="res-pct-b">0%</span>
+        </div>
+      </div>
+      <div class="bloques-texto">
+        <div class="bloque-cita" id="bloque-nota-logica">
+          <p class="bloque-etiqueta">NOTA LÓGICA</p>
+          <p class="bloque-texto" id="nota-logica-texto"></p>
+        </div>
+        <div class="bloque-cita">
+          <p class="bloque-etiqueta">REFLEXIÓN</p>
+          <p class="bloque-texto" id="reflexion-texto"></p>
+        </div>
+      </div>
+    </main>
+    <footer class="resultados-footer">
+      <p id="siguiente-countdown" class="siguiente-countdown"></p>
+    </footer>
+  </section>
+
+  <!-- ═══ TERMINADO ═══ -->
+  <section id="fase-terminado" class="fase" aria-label="Fin de la exposición">
+    <div class="terminado-contenido">
+      <h1 id="fin-titulo" class="fin-titulo">El peso de las razones</h1>
+      <p id="fin-gracias" class="fin-gracias">Gracias.</p>
+      <p id="fin-cita" class="fin-cita">
+        "Tal vez no somos libres de escoger entre A y B,<br />
+        Pero somos libres de hacer la pregunta."
+      </p>
+    </div>
+  </section>
+
+  <!-- Hint del presentador (esquina inferior izquierda) -->
+  <p id="hint-presentador" class="hint-presentador"></p>
+
+  <!-- Controles fijos: mute + reiniciar (esquina inferior derecha) -->
+  <div id="controles-fijos">
+    <button id="btn-mute" class="ctrl-btn ctrl-mute" title="Silenciar">🔊</button>
+    <button id="btn-reset" class="ctrl-btn ctrl-reset">Reiniciar</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/proyector.js') }}"></script>
+</body>
+</html>

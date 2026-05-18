@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modo prueba — El peso de las razones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:     #0a0a0a;
+      --texto:  #f5f0e8;
+      --acento: #d4a574;
+      --muted:  #888880;
+      --borde:  #2a2a2a;
+      --ok:     #6db57a;
+      --rojo:   #c75450;
+      --font-serif: "Crimson Pro", Georgia, serif;
+      --font-ui:    "Inter", system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--texto);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .panel-header h1 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--acento);
+    }
+
+    .panel-header p {
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .status-box {
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--borde);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .status-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status-valor {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .status-valor.activo {
+      color: var(--acento);
+      font-weight: 500;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    input[type="number"] {
+      width: 90px;
+      padding: 0.55rem 0.75rem;
+      background: #111;
+      border: 1px solid var(--borde);
+      color: var(--texto);
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--acento);
+    }
+
+    .botones {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--acento);
+      background: transparent;
+      color: var(--acento);
+      transition: background 0.12s, color 0.12s;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--acento);
+      color: var(--bg);
+    }
+
+    button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-desactivar {
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+
+    .btn-desactivar:hover:not(:disabled) {
+      background: var(--muted);
+      color: var(--bg);
+    }
+
+    #mensaje {
+      min-height: 1.2em;
+      font-size: 0.85rem;
+      color: var(--ok);
+    }
+
+    #mensaje.error {
+      color: var(--rojo);
+    }
+
+    .nota {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+      border-top: 1px solid var(--borde);
+      padding-top: 1rem;
+    }
+
+    .nota strong {
+      color: var(--texto);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+
+    <div class="panel-header">
+      <h1>Modo prueba</h1>
+      <p>Genera jugadores virtuales para ensayar la exposición sin necesitar celulares. Solo disponible en el lobby.</p>
+    </div>
+
+    <div class="status-box">
+      <p class="status-label">Jugadores virtuales</p>
+      <p id="status-prueba" class="status-valor">Inactivo</p>
+    </div>
+
+    <div class="campo">
+      <label for="input-n">Número de jugadores virtuales (1–10)</label>
+      <input type="number" id="input-n" min="1" max="10" value="5" />
+    </div>
+
+    <div class="botones">
+      <button id="btn-activar">Activar</button>
+      <button id="btn-desactivar" class="btn-desactivar" disabled>Desactivar</button>
+    </div>
+
+    <p id="mensaje"></p>
+
+    <p class="nota">
+      <strong>Utilitaristas</strong> tienden a elegir A (maximizar bienestar).
+      <strong>Kantianos</strong> eligen B en dilemas que violan deberes (D2–D5).
+      Hay también jugadores con comportamiento <strong>aleatorio</strong>.
+      Los votos llegan con timing variado para simular una clase real.
+    </p>
+
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    'use strict';
+
+    const socket   = io();
+    const statusEl = document.getElementById('status-prueba');
+    const inputN   = document.getElementById('input-n');
+    const btnAct   = document.getElementById('btn-activar');
+    const btnDes   = document.getElementById('btn-desactivar');
+    const msgEl    = document.getElementById('mensaje');
+
+    function setStatus(activo, n) {
+      if (activo) {
+        statusEl.textContent = `Activo — ${n} jugador${n !== 1 ? 'es' : ''} virtual${n !== 1 ? 'es' : ''}`;
+        statusEl.className = 'status-valor activo';
+      } else {
+        statusEl.textContent = 'Inactivo';
+        statusEl.className = 'status-valor';
+      }
+      btnAct.disabled = activo;
+      btnDes.disabled = !activo;
+    }
+
+    function showMsg(texto, esError = false) {
+      msgEl.textContent = texto;
+      msgEl.className = esError ? 'error' : '';
+      if (texto) {
+        setTimeout(() => {
+          if (msgEl.textContent === texto) msgEl.textContent = '';
+        }, 4000);
+      }
+    }
+
+    btnAct.addEventListener('click', () => {
+      const n = Math.max(1, Math.min(10, parseInt(inputN.value, 10) || 5));
+      socket.emit('admin:activar_prueba', { n });
+    });
+
+    btnDes.addEventListener('click', () => {
+      socket.emit('admin:desactivar_prueba');
+    });
+
+    socket.on('admin:estado_prueba', (data) => {
+      setStatus(data.activo, data.n || 0);
+      showMsg(
+        data.activo
+          ? `${data.n} jugadores virtuales activados. Inicia la partida desde el proyector.`
+          : 'Jugadores virtuales desactivados.'
+      );
+    });
+
+    socket.on('admin:error', (data) => {
+      showMsg(data.mensaje, true);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <!-- maximum-scale=1 evita zoom accidental en mobile; user-scalable=no evita zoom en textarea focus -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>El peso de las razones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jugador.css') }}" />
+</head>
+<body>
+
+  <!-- Banner de desconexión (fixed, aparece al perder WiFi) -->
+  <div id="banner-desconexion" class="banner-desconexion" aria-live="assertive">
+    Sin conexión, reintentando…
+  </div>
+
+  <!-- ID del jugador — siempre visible, esquina superior derecha -->
+  <p id="jugador-id-fijo" class="jugador-id-fijo"></p>
+
+  <!-- ═══ LOBBY ═══ -->
+  <section id="fase-lobby" class="fase activa" aria-label="Sala de espera">
+    <header class="jug-header">
+      <h1 class="jug-titulo-app">El peso de las razones</h1>
+    </header>
+    <main class="jug-centro">
+      <p class="lobby-conectado">Estás conectado.</p>
+      <p class="lobby-espera">Esperando a que el presentador inicie la exposición…</p>
+      <div class="puntos-loading" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </main>
+    <footer class="jug-pie">
+      <p id="lobby-id" class="lobby-id"></p>
+    </footer>
+  </section>
+
+  <!-- ═══ DILEMA BINARIO (1–5) ═══ -->
+  <section id="fase-dilema" class="fase" aria-label="Dilema activo">
+    <header class="jug-header jug-header-dilema">
+      <h2 id="dil-titulo" class="dil-titulo"></h2>
+      <div id="dil-timer-wrap" class="timer-wrap-jug">
+        <span id="dil-timer" class="timer-num-jug">—</span>
+        <span class="timer-s-jug">s</span>
+      </div>
+    </header>
+    <main class="dil-centro" id="dil-centro">
+      <p id="dil-enunciado" class="dil-enunciado"></p>
+    </main>
+    <footer class="jug-botones">
+      <button id="btn-opcion-a" class="btn-opcion" data-opcion="A" aria-label="Votar opción A">
+        <span class="btn-letra">A</span>
+        <span class="btn-texto" id="btn-texto-a"></span>
+      </button>
+      <button id="btn-opcion-b" class="btn-opcion" data-opcion="B" aria-label="Votar opción B">
+        <span class="btn-letra">B</span>
+        <span class="btn-texto" id="btn-texto-b"></span>
+      </button>
+    </footer>
+  </section>
+
+  <!-- ═══ YA VOTASTE (cliente, dentro de fase dilema) ═══ -->
+  <section id="fase-votado" class="fase" aria-label="Voto registrado">
+    <header class="jug-header jug-header-dilema">
+      <h2 id="vot-titulo" class="dil-titulo"></h2>
+      <div id="vot-timer-wrap" class="timer-wrap-jug">
+        <span id="vot-timer" class="timer-num-jug">—</span>
+        <span class="timer-s-jug">s</span>
+      </div>
+    </header>
+    <main class="jug-centro">
+      <div class="vot-contenido">
+        <span id="vot-letra" class="vot-letra"></span>
+        <p id="vot-texto-opcion" class="vot-texto-opcion"></p>
+        <p class="vot-confirmacion">Voto registrado.</p>
+        <p class="vot-espera">Esperando a los demás…</p>
+      </div>
+    </main>
+  </section>
+
+  <!-- ═══ DILEMA LIBRE (6) ═══ -->
+  <section id="fase-libre" class="fase" aria-label="Respuesta libre">
+    <header class="jug-header jug-header-dilema">
+      <h2 id="lib-titulo" class="dil-titulo"></h2>
+      <div id="lib-timer-wrap" class="timer-wrap-jug">
+        <span id="lib-timer" class="timer-num-jug">—</span>
+        <span class="timer-s-jug">s</span>
+      </div>
+    </header>
+    <main class="lib-centro">
+      <p id="lib-enunciado" class="dil-enunciado lib-enunciado-reducido"></p>
+      <div class="lib-input-wrap">
+        <textarea
+          id="lib-textarea"
+          class="lib-textarea"
+          maxlength="200"
+          placeholder="Escribe tu decisión…"
+          aria-label="Tu respuesta"
+        ></textarea>
+        <p class="lib-contador-chars"><span id="lib-chars">0</span>/200</p>
+      </div>
+    </main>
+    <footer class="jug-botones jug-botones-libre">
+      <button id="btn-enviar" class="btn-enviar">ENVIAR</button>
+    </footer>
+  </section>
+
+  <!-- ═══ YA ENVIÓ (cliente) ═══ -->
+  <section id="fase-enviado" class="fase" aria-label="Respuesta enviada">
+    <header class="jug-header">
+      <h2 id="env-titulo" class="dil-titulo"></h2>
+    </header>
+    <main class="jug-centro">
+      <div class="vot-contenido">
+        <p class="vot-confirmacion">Enviado.</p>
+        <p class="vot-espera">Esperando a los demás…</p>
+      </div>
+    </main>
+  </section>
+
+  <!-- ═══ RESULTADOS ═══ -->
+  <section id="fase-resultados" class="fase" aria-label="Resultados">
+    <header class="jug-header">
+      <p id="res-titulo" class="res-titulo"></p>
+    </header>
+    <main class="res-main">
+      <p id="res-gracias-libre" class="res-gracias-libre" style="display:none">Gracias por tu respuesta.</p>
+      <div id="res-opciones" class="res-opciones">
+        <div class="res-fila">
+          <span class="res-letra">A</span>
+          <div class="res-barra-wrap"><div class="res-barra-fill" id="res-barra-a"></div></div>
+          <span class="res-pct" id="res-pct-a">0%</span>
+          <span class="res-mi-voto" id="res-mi-voto-a"></span>
+        </div>
+        <div class="res-fila">
+          <span class="res-letra">B</span>
+          <div class="res-barra-wrap"><div class="res-barra-fill" id="res-barra-b"></div></div>
+          <span class="res-pct" id="res-pct-b">0%</span>
+          <span class="res-mi-voto" id="res-mi-voto-b"></span>
+        </div>
+      </div>
+      <p class="res-espera">Siguiente dilema en breve…</p>
+    </main>
+  </section>
+
+  <!-- ═══ TERMINADO ═══ -->
+  <section id="fase-terminado" class="fase" aria-label="Fin de la exposición">
+    <main class="jug-centro term-centro">
+      <p class="term-gracias">Gracias por participar.</p>
+      <p class="term-reflexion">Espero que algo se les quede dando vueltas.</p>
+      <p id="term-id" class="term-id"></p>
+    </main>
+  </section>
+
+  <!-- Panel del presentador (solo visible con ?p=1) -->
+  <div id="panel-presentador" class="panel-presentador" style="display:none" aria-hidden="true">
+    <button id="btn-presentador-avanzar" class="btn-presentador-avanzar">▶ AVANZAR</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/jugador.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,603 @@
+/* ====================================================================
+   VARIABLES & RESET
+   ==================================================================== */
+:root {
+  --bg:      #0a0a0a;
+  --texto:   #f5f0e8;
+  --acento:  #d4a574;
+  --muted:   #888880;
+  --borde:   #2a2a2a;
+  --rojo:    #c75450;
+  --ok:      #6db57a;
+
+  --font-serif: "Crimson Pro", Georgia, serif;
+  --font-ui:    "Inter", system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+  /* Hack para que la altura respete el teclado virtual en iOS */
+  height: -webkit-fill-available;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+  min-height: -webkit-fill-available;
+  background: var(--bg);
+  color: var(--texto);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  /* Respeta el notch en iPhones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ====================================================================
+   BANNER DE DESCONEXIÓN
+   ==================================================================== */
+.banner-desconexion {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--rojo);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 0.55rem 1rem;
+  transform: translateY(-110%);
+  transition: transform 0.25s ease;
+}
+
+.banner-desconexion.visible {
+  transform: translateY(0);
+}
+
+/* ====================================================================
+   ID DEL JUGADOR (siempre visible, esquina superior derecha)
+   ==================================================================== */
+.jugador-id-fijo {
+  position: fixed;
+  top: calc(0.55rem + env(safe-area-inset-top));
+  right: 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ====================================================================
+   SISTEMA DE FASES
+   ==================================================================== */
+.fase {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  /* Respeta el notch en iPhones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.fase.activa {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ====================================================================
+   CABECERA COMPARTIDA
+   ==================================================================== */
+.jug-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--borde);
+  gap: 0.75rem;
+}
+
+.jug-titulo-app {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--acento);
+  letter-spacing: 0.01em;
+}
+
+/* Header en fases con dilema: titulo + timer */
+.jug-header-dilema {
+  min-height: 56px; /* toque táctil mínimo para el área de cabecera */
+}
+
+.dil-titulo {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--texto);
+  letter-spacing: 0.02em;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ====================================================================
+   TIMER (jugador)
+   ==================================================================== */
+.timer-wrap-jug {
+  display: flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  flex-shrink: 0;
+  color: var(--acento);
+  transition: color 0.3s ease;
+  transform-origin: center;
+}
+
+.timer-num-jug {
+  font-family: var(--font-ui);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-s-jug {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.timer-wrap-jug.timer-urgente {
+  color: var(--rojo);
+  animation: latido-jug 1s ease-in-out infinite;
+}
+
+.timer-wrap-jug.timer-critico {
+  animation-duration: 0.5s;
+}
+
+@keyframes latido-jug {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+
+/* ====================================================================
+   CENTRO GENÉRICO (lobby, votado, terminado)
+   ==================================================================== */
+.jug-centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  gap: 1.2rem;
+  text-align: center;
+  overflow-y: auto;
+}
+
+/* ====================================================================
+   PIE GENÉRICO
+   ==================================================================== */
+.jug-pie {
+  flex-shrink: 0;
+  padding: 0.75rem 1.1rem;
+  border-top: 1px solid var(--borde);
+  text-align: center;
+}
+
+/* ====================================================================
+   LOBBY
+   ==================================================================== */
+.lobby-conectado {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--acento);
+  line-height: 1.2;
+}
+
+.lobby-espera {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 260px;
+}
+
+/* Tres puntitos animados */
+.puntos-loading {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.puntos-loading span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: pulso-punto 1.4s ease-in-out infinite;
+}
+
+.puntos-loading span:nth-child(2) { animation-delay: 0.22s; }
+.puntos-loading span:nth-child(3) { animation-delay: 0.44s; }
+
+@keyframes pulso-punto {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.75); }
+  40%           { opacity: 1;   transform: scale(1); }
+}
+
+.lobby-id {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+/* ====================================================================
+   DILEMA BINARIO
+   ==================================================================== */
+.dil-centro {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  align-items: flex-start; /* texto desde arriba para no "flotar" en centro */
+}
+
+.dil-enunciado {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  line-height: 1.65;
+  color: var(--texto);
+  width: 100%;
+}
+
+/* Botones A / B */
+.jug-botones {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--borde);
+}
+
+.btn-opcion {
+  flex: 1;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--borde);
+  cursor: pointer;
+  touch-action: manipulation; /* evita delay 300ms del double-tap zoom */
+  transition: background 0.12s;
+  text-align: left;
+  width: 100%;
+}
+
+.btn-opcion:last-child {
+  border-bottom: none;
+}
+
+.btn-opcion:active,
+.btn-opcion.presionado {
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.btn-opcion:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-letra {
+  font-family: var(--font-serif);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--acento);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 1.6rem;
+  text-align: center;
+}
+
+.btn-texto {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--texto);
+  line-height: 1.35;
+  flex: 1;
+}
+
+/* ====================================================================
+   YA VOTASTE
+   ==================================================================== */
+.vot-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vot-letra {
+  font-family: var(--font-serif);
+  font-size: 5rem;
+  font-weight: 600;
+  color: var(--acento);
+  line-height: 1;
+}
+
+.vot-texto-opcion {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  color: var(--texto);
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.4;
+}
+
+.vot-confirmacion {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  color: var(--texto);
+  letter-spacing: 0.04em;
+}
+
+.vot-espera {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ====================================================================
+   DILEMA LIBRE (6)
+   ==================================================================== */
+.lib-centro {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  min-height: 0;
+}
+
+.lib-enunciado-reducido {
+  font-size: 1.1rem;
+  line-height: 1.55;
+  flex-shrink: 0;
+}
+
+.lib-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.lib-textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 0.85rem 1rem;
+  background: #111;
+  border: 1px solid var(--borde);
+  color: var(--texto);
+  font-family: var(--font-serif);
+  font-size: 1.1rem; /* ≥16px evita zoom en iOS al hacer focus */
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.lib-textarea:focus {
+  border-color: var(--acento);
+}
+
+.lib-textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.lib-contador-chars {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+  letter-spacing: 0.03em;
+}
+
+/* Botón ENVIAR */
+.jug-botones-libre {
+  border-top: 1px solid var(--borde);
+  padding: 1rem 1.25rem;
+}
+
+.btn-enviar {
+  width: 100%;
+  min-height: 60px;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--acento);
+  background: transparent;
+  border: 1px solid var(--acento);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.12s, color 0.12s;
+}
+
+.btn-enviar:active {
+  background: var(--acento);
+  color: var(--bg);
+}
+
+/* ====================================================================
+   RESULTADOS
+   ==================================================================== */
+.res-titulo {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.res-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 1.25rem;
+  overflow-y: auto;
+}
+
+.res-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.res-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.res-letra {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--acento);
+  flex-shrink: 0;
+  width: 1.3rem;
+  text-align: center;
+}
+
+.res-barra-wrap {
+  flex: 1;
+  height: 10px;
+  background: var(--borde);
+  overflow: hidden;
+}
+
+.res-barra-fill {
+  height: 100%;
+  background: var(--acento);
+  width: 0%;
+  transition: width 0.8s ease-out;
+}
+
+.res-pct {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--texto);
+  flex-shrink: 0;
+  width: 3.2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.res-mi-voto {
+  font-size: 0.72rem;
+  color: var(--acento);
+  flex-shrink: 0;
+  min-width: 4rem;
+  letter-spacing: 0.02em;
+}
+
+.res-espera {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.res-gracias-libre {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: var(--texto);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ====================================================================
+   TERMINADO
+   ==================================================================== */
+.term-centro {
+  gap: 1.5rem;
+}
+
+.term-gracias {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  color: var(--texto);
+  line-height: 1.3;
+}
+
+.term-reflexion {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.term-id {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+}
+
+/* ====================================================================
+   PANEL PRESENTADOR (?p=1)
+   ==================================================================== */
+.panel-presentador {
+  position: fixed;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  right: 1.25rem;
+  z-index: 200;
+}
+
+.btn-presentador-avanzar {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--acento);
+  border: none;
+  padding: 0.85rem 1.5rem;
+  min-height: 56px;
+  min-width: 140px;
+  cursor: pointer;
+  touch-action: manipulation;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.btn-presentador-avanzar:active {
+  opacity: 1;
+}
