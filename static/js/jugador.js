@@ -10,6 +10,7 @@ let faseActualKey      = 'lobby';// clave de la sección visible
 let prevDilemaNum      = 0;      // para detectar cambio de dilema y deshabilitar botones
 let botonesHabilitados = true;   // evitar tap residual entre dilemas
 let _transicionId      = 0;      // contador para cancelar transiciones obsoletas (race condition)
+let enPrediccionD5     = false;  // true mientras el proyector muestra la pantalla de predicción D5
 
 // Modo presentador: activado con ?p=1 en la URL, persistido en sessionStorage
 const modoP = (() => {
@@ -130,7 +131,8 @@ const panelPresentador = document.getElementById('panel-presentador');
 function actualizarPanelPresentador() {
   if (!modoP || !panelPresentador) return;
   const fase = estadoActual && estadoActual.fase;
-  panelPresentador.style.display = (fase === 'resultados' || fase === 'terminado') ? '' : 'none';
+  const mostrar = enPrediccionD5 || fase === 'resultados' || fase === 'terminado';
+  panelPresentador.style.display = mostrar ? '' : 'none';
 }
 
 if (modoP && panelPresentador) {
@@ -390,6 +392,11 @@ socket.on('jugador:bienvenida', async (data) => {
 socket.on('estado:actualizado', async (estado) => {
   estadoActual = estado;
 
+  // Limpiar flag de predicción cuando el dilema 5 ya arrancó en el servidor
+  if (estado.fase === 'dilema' && estado.dilema_actual === 5) {
+    enPrediccionD5 = false;
+  }
+
   // Actualizar prevDilemaNum SIEMPRE que el dilema cambie, independientemente
   // de la fase actual o de la pantalla en la que esté el jugador (ej. "votado").
   if (estado.dilema_actual !== undefined && estado.dilema_actual !== prevDilemaNum) {
@@ -407,6 +414,12 @@ socket.on('estado:actualizado', async (estado) => {
 socket.on('timer:tick', ({ restante }) => {
   if (estadoActual) estadoActual.timer_restante = restante;
   actualizarTodosLosTimers(restante);
+});
+
+socket.on('dilema5:revelacion_prediccion', () => {
+  // El proyector está mostrando la predicción; el presentador necesita el botón AVANZAR.
+  enPrediccionD5 = true;
+  actualizarPanelPresentador();
 });
 
 socket.on('dilema:terminado', () => {

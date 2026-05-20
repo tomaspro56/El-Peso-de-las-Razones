@@ -174,10 +174,17 @@ def run_game_loop(run_id: int) -> None:
                 f"{prediccion['prediccion']} ({prediccion['porcentaje']}%)"
             )
             socketio.emit("dilema5:revelacion_prediccion", prediccion)
-            for _ in range(8):
+
+            # Esperar avance manual del presentador (timeout de seguridad: 60s)
+            game_state.avanzar_solicitado = False
+            espera_max = 60
+            while not game_state.avanzar_solicitado and espera_max > 0:
                 if game_state._run_id != run_id:
                     return
-                socketio.sleep(1)
+                socketio.sleep(0.2)
+                espera_max -= 0.2
+            game_state.avanzar_solicitado = False
+            print(f"[GAME] Predicción D5 cerrada, iniciando dilema 5")
 
         # --- Iniciar dilema ---
         game_state.iniciar_dilema(num)

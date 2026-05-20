@@ -115,7 +115,6 @@ function reproducirReveal() {
   revealActivo = new Audio(SONIDOS.reveal);
   revealActivo.volume = VOLUMENES.reveal;
   revealActivo.play().catch(() => {});
-  setTimeout(() => detenerReveal(), 7500);
 }
 
 function detenerReveal() {
@@ -592,7 +591,10 @@ const hintEl = document.getElementById('hint-presentador');
 
 function actualizarHint() {
   if (!hintEl) return;
-  if (faseActualKey === 'resultados') {
+  if (faseActualKey === 'prediccion' && prediccionTerminada) {
+    hintEl.textContent = '[ESPACIO] continuar';
+    hintEl.classList.add('visible');
+  } else if (faseActualKey === 'resultados') {
     const es6 = estadoActual && estadoActual.dilema_actual === 6;
     hintEl.textContent = es6 ? '[ESPACIO] terminar' : '[ESPACIO] continuar';
     hintEl.classList.add('visible');
@@ -645,17 +647,7 @@ async function mostrarPrediccionD5(data) {
 
   // t≈4.1s — línea 4 (fade 0.6s)
   mostrarLinea(predLinea4, explicacion, 600);
-
-  // t≈4.7s — todo visible; esperar lectura (~2.8s hasta t≈7.5s desde inicio de función)
-  await sleep(2900);
-
-  // t≈7.6s — fade-out de la sección completa (0.5s)
-  if (seccion) {
-    seccion.style.transition = 'opacity 0.5s ease';
-    seccion.style.opacity = '0';
-  }
-  await sleep(500);
-  // t≈8.1s — el backend ya inició dilema 5 (espera 8s desde el evento)
+  // t≈4.7s — todo visible; pantalla estática hasta que el presentador presione ESPACIO.
 }
 
 /* ======================================================================
@@ -694,10 +686,18 @@ socket.on('estado:actualizado', async (estado) => {
   if (estado.fase !== 'dilema') detenerTodosLosTicks();
   if (estado.fase === 'lobby') detenerReveal();
 
-  // Si la revelación D5 sigue en pantalla, encolar el estado de dilema 5
+  // Si la animación de predicción aún corre, encolar el estado de dilema 5
   if (estado.fase === 'dilema' && estado.dilema_actual === 5 && !prediccionTerminada) {
     estadoPendienteD5 = estado;
     return;
+  }
+
+  // Al entrar en dilema 5 garantizar limpieza de audio de la predicción (timeout 60s o avance rápido)
+  if (estado.fase === 'dilema' && estado.dilema_actual === 5) {
+    detenerReveal();
+    if (!muteado && audioDesbloqueado && audioAmbient.volume < VOLUMENES.ambient) {
+      fadeVolumen(audioAmbient, audioAmbient.volume, VOLUMENES.ambient, 300);
+    }
   }
 
   await cambiarFase(computarKey(estado), estado);
@@ -717,25 +717,26 @@ socket.on('timer:tick', ({ restante }) => {
 
 socket.on('dilema5:revelacion_prediccion', async (data) => {
   prediccionTerminada = false;
+  estadoPendienteD5 = null;
 
-  // Duck ambient y reproducir reveal
   if (!muteado && audioDesbloqueado) {
     fadeVolumen(audioAmbient, VOLUMENES.ambient, 0.06, 800);
     reproducirReveal();
   }
 
-  // Transición a la pantalla de predicción
   await cambiarFase('prediccion', null);
   await mostrarPrediccionD5(data);
+
+  // Animación completa (~4.7s); pantalla estática esperando ESPACIO del presentador.
   prediccionTerminada = true;
+  actualizarHint();
 
-  // Restaurar ambient (la predicción duró ~8s; esperamos hasta t≈7.5s dentro de mostrarPrediccionD5)
-  if (!muteado && audioDesbloqueado) {
-    fadeVolumen(audioAmbient, audioAmbient.volume, VOLUMENES.ambient, 1500);
-  }
-
-  // Si el estado de dilema 5 llegó mientras mostrábamos la predicción, procesarlo ahora
+  // Caso borde: el server ya avanzó durante la animación (ESPACIO muy rápido o timeout 60s)
   if (estadoPendienteD5) {
+    detenerReveal();
+    if (!muteado && audioDesbloqueado) {
+      fadeVolumen(audioAmbient, audioAmbient.volume, VOLUMENES.ambient, 300);
+    }
     const estado = estadoPendienteD5;
     estadoPendienteD5 = null;
     await cambiarFase(computarKey(estado), estado);
@@ -762,7 +763,13 @@ document.addEventListener('keydown', (e) => {
   if (e.code !== 'Space') return;
   e.preventDefault();
 
-  if (faseActualKey === 'resultados') {
+  if (faseActualKey === 'prediccion') {
+    detenerReveal();
+    if (!muteado && audioDesbloqueado) {
+      fadeVolumen(audioAmbient, audioAmbient.volume, VOLUMENES.ambient, 300);
+    }
+    socket.emit('presentador:avanzar');
+  } else if (faseActualKey === 'resultados') {
     socket.emit('presentador:avanzar');
   } else if (faseActualKey === 'terminado') {
     socket.emit('proyector:reset');
