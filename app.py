@@ -76,8 +76,12 @@ def generar_qr_base64(url: str) -> str:
     return base64.b64encode(buf.read()).decode("utf-8")
 
 
-IP_LOCAL = get_local_ip()
-URL_JUGADOR = f"http://{IP_LOCAL}:5000/jugador"
+url_override = os.getenv("URL_OVERRIDE", "").strip()
+if url_override:
+    URL_JUGADOR = f"{url_override.rstrip('/')}/jugador"
+else:
+    IP_LOCAL = get_local_ip()
+    URL_JUGADOR = f"http://{IP_LOCAL}:5000/jugador"
 QR_BASE64 = generar_qr_base64(URL_JUGADOR)
 
 

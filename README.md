@@ -62,6 +62,7 @@ cp .env.example .env
 | Variable | Descripción | Default |
 |---|---|---|
 | `IP_OVERRIDE` | IP que aparece en el QR. Ver sección WSL abajo. | auto-detect |
+| `URL_OVERRIDE` | URL pública completa (ngrok u otro túnel). Si está definida, sobrescribe `IP_OVERRIDE`. | vacío |
 | `DILEMA_DURACION` | Segundos de votación por dilema | `30` |
 
 En lugar de editar `.env` a mano, podés usar el script interactivo (recomendado el día de la presentación):
@@ -129,19 +130,13 @@ No depende del WiFi del lugar. Es la opción más confiable para exposiciones.
 
 ---
 
-### Plan C — Ngrok (último recurso)
+### Plan C — Ngrok (recomendado cuando se requieren más de 8 conexiones o la WiFi del lugar tiene AP isolation)
 
-Usalo si necesitás que los estudiantes se conecten desde datos móviles o desde una red
-distinta a la tuya.
+Ngrok crea un túnel desde internet a tu Flask local. La URL pública funciona desde cualquier
+red (datos móviles, otras WiFi). El QR del proyector apunta directamente a esa URL, sin
+necesidad de dictarla al salón.
 
-1. En otra terminal, ejecutá:
-   ```bash
-   ngrok http 5000
-   ```
-2. Ngrok te da una URL pública tipo `https://abc123.ngrok-free.app`.
-3. Dictale esa URL al salón.
-
-**Instalación de ngrok** (si no lo tenés):
+**Instalación de ngrok** (una sola vez):
 ```bash
 # Linux/WSL — instalar via apt
 curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
@@ -150,11 +145,43 @@ curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
   | sudo tee /etc/apt/sources.list.d/ngrok.list \
   && sudo apt update && sudo apt install ngrok
 
-ngrok config add-authtoken <TU_TOKEN>   # cuenta gratuita en ngrok.com
+# Configurar tu authtoken (sacalo en https://dashboard.ngrok.com/get-started/your-authtoken)
+ngrok config add-authtoken <TU_TOKEN>
 ```
 
-> ⚠️ La URL cambia en cada sesión con la cuenta gratuita. El QR hay que actualizarlo
-> manualmente o compartir la URL directamente.
+**Uso el día de la presentación**:
+
+1. En una terminal, levantá Flask normalmente:
+   ```bash
+   python app.py
+   ```
+
+2. En otra terminal, levantá ngrok:
+   ```bash
+   ngrok http 5000
+   ```
+
+3. Copiá la URL pública que aparece en la línea `Forwarding`, algo tipo:
+   ```
+   https://parched-humbly-marbles.ngrok-free.dev
+   ```
+
+4. Editá `.env` y pegala como `URL_OVERRIDE`:
+   ```
+   URL_OVERRIDE=https://parched-humbly-marbles.ngrok-free.dev
+   ```
+
+5. Reiniciá Flask (Ctrl+C y volvé a correr `python app.py`).
+
+6. Recargá el proyector en el navegador (Ctrl+Shift+R). El QR ahora apunta directamente
+   a la URL de ngrok, y los estudiantes pueden escanearlo con datos móviles o cualquier red.
+
+> ⚠️ **La URL cambia cada vez que reiniciás ngrok** (en el plan gratuito). Si reiniciás
+> ngrok, hay que actualizar el `.env` y reiniciar Flask.
+
+> ⚠️ La primera vez que un estudiante entra a la URL, ngrok muestra una página de
+> advertencia. Hay que tocar "Visit Site" para continuar. Avisarles al salón al inicio
+> de la exposición.
 
 ---
 
