@@ -1,8 +1,40 @@
 # El peso de las razones
 
+![Lobby de la app con el QR de conexión](docs/lobby.png)
+
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0-000000?logo=flask&logoColor=white)
+![SocketIO](https://img.shields.io/badge/Socket.IO-5.0-010101?logo=socket.io&logoColor=white)
+![Status](https://img.shields.io/badge/status-completo-success)
+
 App web interactiva para exposiciones de Matemáticas para la Informática.
 Una pantalla actúa como proyector; los estudiantes se conectan desde sus celulares
 escaneando un QR para votar dilemas filosóficos en tiempo real.
+
+---
+
+## Galería
+
+![Dilema en curso con imagen cinematográfica](docs/dilema.png)
+*Dilema I — El tranvía. Cada dilema combina enunciado, imagen y timer.*
+
+![Pantalla de revelación de predicción](docs/prediccion.png)
+*Antes del dilema 5, la app predice cómo votará el salón basándose en los votos previos.*
+
+![Resultados con nota lógica](docs/resultados.png)
+*Cada dilema cierra con resultados, fórmula lógica y reflexión filosófica.*
+
+![Dilema 6 con respuestas libres](docs/dilema6.png)
+*Dilema VI — La única libertad. Texto libre, sin opciones predefinidas.*
+
+![Pantalla final](docs/final.png)
+*Cierre de la exposición.*
+
+---
+
+## Video demo
+
+[Ver demo en YouTube](https://youtu.be/Cej322_aPpo)
 
 ---
 
