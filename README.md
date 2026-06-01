@@ -123,17 +123,6 @@ New-NetFirewallRule -DisplayName "Flask 5000" -Direction Inbound -Protocol TCP -
 
 ---
 
-## 🎯 Día de la presentación
-
-### Antes de empezar (5-10 minutos antes)
-
-1. Llegá temprano al salón.
-2. Decidí qué red vas a usar (ver planes abajo).
-3. Ejecutá `python setup_red.py` y elegí la IP correspondiente.
-4. Reiniciá el servidor: `python app.py`.
-5. **Probá desde un celular** que la URL funcione antes de empezar.
-
----
 
 ### Plan A — WiFi del salón
 
